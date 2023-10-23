@@ -4,15 +4,17 @@ class Graph:
         self.edges = edges
         self.nodes = nodes
 
-    def show_graph(self):
+    def __str__(self):
+        string = ''
         for node in self.nodes:
             w = node.weight
             e = [edge.to.weight for edge in node.edges]
             c = [edge.cost for edge in node.edges]
             h = node.h
-            print(f'Node {node.id}: x={node.x}, y={node.y}, w={w}, ' + 
-                  f'Edges to: {e}, Costs: {c}, Heuristic: {h}')
-
+            string += f'Node {node.id}: x={node.x}, y={node.y}, w={w}, Edges to: {e}, Costs: {c}, Heuristic: {h}\n'
+            
+        return string
+            
 class Node:
     def __init__(self, x, y, weight):
         self.id = id
@@ -25,14 +27,14 @@ class Node:
     def heuristics(self, x_end, y_end):
         return (x_end - self.x) + (y_end - self.y)
     
-    def show_node(self):
-        print(f'Node {self.id}: x={self.x}, y={self.y}')
+    def __str__(self):
+        return f'Node {self.id}: x={self.x}, y={self.y}'
 
 class Edge:
     def __init__(self, fromn: Node, to: Node):
         self.fromn = fromn
         self.to = to
-        self.cost = int((self.fromn.weight + self.to.weight) / 2)
+        self.cost = abs(int((self.fromn.weight + self.to.weight) / 2))
 
 def make_graph(file_path):
     file = open(file_path, 'r')
@@ -80,7 +82,7 @@ def make_graph(file_path):
     return Graph(edges=edges_list, nodes=nodes_list)
 
 
-def retrive_path(p, s, e):
+def retrieve_path(p, s, e):
     path = []
 
     while e != s:
@@ -99,42 +101,55 @@ def astar(graph):
     Q = {}  # {node: access cost + heuristic}
     d = {}  # access costs
     p = {}  # previous node
-    visited = set()
+    visited = {}  # Number of visits for each visited node
 
     S.append(start_node)
+    visited[start_node] = 0
     d[start_node] = 0
     p[start_node] = None
 
     while end_node not in S:
-
+        
+        visited[S[-1]] += 1  # odwiedzony kolejny raz w zbiorze S
         # przejrzenie sąsiadów node dodanego do S na końcu
         for edge in S[-1].edges:
             if edge.to not in S:
-                f =  d[edge.fromn] + edge.cost + edge.to.h  # szacowany koszt dojścia do końca
+                f = d[edge.fromn] + edge.cost + edge.to.h  # szacowany koszt dojścia do końca
 
                 if edge.to in visited:
+                    visited[edge.to] += 1                       # odwiedzony kolejny raz
                     if f < Q[edge.to]:
-                        d[edge.to] = d[edge.fromn] + edge.cost
+                        d[edge.to] = d[edge.fromn] + edge.cost  # koszt dojścia do node
                         Q[edge.to] = f
-                        p[edge.to] = edge.fromn
+                        p[edge.to] = edge.fromn                 # zapisanie poprzednika
                     else:
                         continue
                 else:
-                    d[edge.to] = d[edge.fromn] + edge.cost
+                    visited[edge.to] = 1                    # odwiedzony pierwszy raz
+                    d[edge.to] = d[edge.fromn] + edge.cost  # koszt dojścia do node
                     Q[edge.to] = f
-                    p[edge.to] = edge.fromn
+                    p[edge.to] = edge.fromn                 # zapisanie poprzednika
 
-                    visited.add(edge.to)
-
-        min_f_node = min(Q, key=Q.get)  # wybranie z Q node o najmniejszym szacowanym koszcie dojśća
+        min_f_node = min(Q, key=Q.get)  # wybranie z Q node o najmniejszym szacowanym koszcie dojścia
         del Q[min_f_node]               # i usunięcie go z Q
         S.append(min_f_node)            # i dodanie go do S
 
-    path = retrive_path(p, start_node, end_node)
+    path = retrieve_path(p, start_node, end_node)
+
+    # wyprintowanie wyników
+    print('---------- Path:')
     for node in path:
-        node.show_node()
+        print(node)
 
-graph = make_graph('dane/graf3.txt')
-astar(graph)
+    print('---------- Number of visits for each node:')
+    for key, value in visited.items():
+        print(f'{key}, visited: {value}')
 
+    print('-----------')
+    print(f'Arrival cost: {d[min_f_node]}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
+    ##
 
+    return d[min_f_node], len(visited), sum(visited.values())
+
+graph = make_graph('dane/graf6.txt')
+cost, visited_num, visits_num = astar(graph)
