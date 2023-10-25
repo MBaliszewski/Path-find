@@ -49,7 +49,7 @@ def make_graph(file_path):
         nodes = line.split()
         for n in nodes:
             x += 1
-            nodes_list.append(Node(x, y, int(n))) 
+            nodes_list.append(Node(x=x, y=y, weight=int(n))) 
         x = 0
 
     ending_node = nodes_list[-1]
@@ -130,6 +130,10 @@ def astar(graph):
                     Q[edge.to] = f
                     p[edge.to] = edge.fromn                 # zapisanie poprzednika
 
+            # Jeśli brak trasy
+            if len(Q) == 0:
+                return None 
+
         min_f_node = min(Q, key=Q.get)  # wybranie z Q node o najmniejszym szacowanym koszcie dojścia
         del Q[min_f_node]               # i usunięcie go z Q
         S.append(min_f_node)            # i dodanie go do S
@@ -146,10 +150,68 @@ def astar(graph):
         print(f'{key}, visited: {value}')
 
     print('-----------')
-    print(f'Arrival cost: {d[min_f_node]}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
+    print(f'Arrival cost: {d[end_node]}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
     ##
 
-    return d[min_f_node], len(visited), sum(visited.values())
+    return d[end_node], len(visited), sum(visited.values())
 
-graph = make_graph('dane/graf6.txt')
-cost, visited_num, visits_num = astar(graph)
+def dijkstra(graph):
+    start_node = graph.nodes[0]
+    end_node = graph.nodes[-1]
+    S = []
+    Q = []
+    p = {}
+    d = {}
+    visited = {}
+
+    Q.append(start_node)
+    visited[start_node] = 1
+    d[start_node] = 0
+    p[start_node] = None
+
+    while len(Q) != 0:
+        min_d_node = min(Q, key=lambda n: d.get(n, None))   # wybranie z Q node o najmniejszym koszcie dojścia 
+        Q.remove(min_d_node)                                # usunięcie go z Q
+        visited[min_d_node] += 1
+        
+        if min_d_node == end_node:
+            break
+
+        for edge in min_d_node.edges:                       # sprawdzenie wszystkich sąsiadów wybranego node,
+            if edge.to not in S:                            # którzy nie są w S
+                if edge.to not in d:
+                    visited[edge.to] = 1                    # odwiedzony po raz pierwszy
+                    d[edge.to] = d[edge.fromn] + edge.cost  # przypisanie kosztu dojścia po raz pierwszy
+                    p[edge.to] = edge.fromn                 # przypisanie poprzednika po raz pierwszy
+                else:
+                    visited[edge.to] += 1                       # odwiedzony kolejny raz
+                    if d[edge.to] > d[edge.fromn] + edge.cost:  # relaksacja
+                        d[edge.to] = d[edge.fromn] + edge.cost  # nowy koszt dojścia
+                        p[edge.to] = edge.fromn                 # nowy poprzednik
+
+                if edge.to not in Q:                        # dodanie do Q
+                    Q.append(edge.to)
+
+        S.append(min_d_node)
+
+    path = retrieve_path(p, start_node, end_node)
+
+    # wyprintowanie wyników
+    print('---------- Path:')
+    for node in path:
+        print(node)
+
+    print('---------- Number of visits for each node:')
+    for key, value in visited.items():
+        print(f'{key}, visited: {value}')
+
+    print('-----------')
+    print(f'Arrival cost: {d[end_node]}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
+    ##
+
+    return d[end_node], len(visited), sum(visited.values())
+
+
+graph = make_graph('dane/graf40.txt')
+cost, visited_num, visits_num = dijkstra(graph)
+#cost, visited_num, visits_num = astar(graph)
