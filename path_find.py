@@ -1,6 +1,3 @@
-# import arcpy
-#
-# arcpy.env.workspace = 'C:/Data/Tongass'
 
 class Graph:
     def __init__(self, edges, nodes, start, end):
@@ -225,8 +222,3 @@ def dijkstra(graph):
     ##
 
     return d[end_node], len(visited), sum(visited.values())
-
-
-graph = make_graph('dane/graf40.txt', 0, -1)
-#cost, visited_num, visits_num = dijkstra(graph)
-cost, visited_num, visits_num = astar(graph)
