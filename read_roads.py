@@ -1,5 +1,5 @@
 import arcpy
-from dataStructurs import Graph, Node, Edge
+from dataStructures import Graph, Node, Edge
 import math
 
 def generate_id_from_xy(x, y):
@@ -41,7 +41,7 @@ def make_graph(workspace, layer):
             print(f'Len: {row[2]}')
 
 
-workspace = 'E:\\sem5\\PAG\\dane\\torun'
+workspace = 'dane\\torun'
 #layer = 'L4_1_BDOT10k__OT_SKJZ_L.shp'
 layer = 'testowa.shp'
 make_graph(workspace, layer)
