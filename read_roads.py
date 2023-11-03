@@ -18,13 +18,22 @@ def make_graph(workspace, layer):
         for row in cursor:
             idx = row[0]
             geom = row[1]
+            length = row[2]
             
             x_start =  geom.firstPoint.X
             y_start =  geom.firstPoint.Y
             if generate_id_from_xy(x_start, y_start) in index_nodes:
-                pass
+                node_start = nodes[index_nodes[generate_id_from_xy(x_start, y_start)]]
             else:
-                node_start = Node(x=x_start, y=y_start)
+                node_start = Node(id=generator_node_id, x=x_start, y=y_start)
+                nodes[generator_node_id] = node_start
+                index_nodes[generate_id_from_xy(node_start.x, node_start.y)] = generator_node_id
+
+            # to samo dla geom.lastPoint
+
+            # edge = Edge(from=node_start, to=node_from, cost=length)
+            # node_start.edges.append(edge)
+            # node_end.edges.append(edge)
 
             print(idx)
             print(f'Start: {geom.firstPoint.X}, {geom.firstPoint.Y}')
