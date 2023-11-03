@@ -54,7 +54,9 @@ def make_graph(workspace, layer):
 
 
 workspace = 'dane\\torun'
-layer = 'L4_1_BDOT10k__OT_SKJZ_L.shp'
+#layer = 'L4_1_BDOT10k__OT_SKJZ_L.shp'
 #layer = 'testowa.shp'
+layer = 'przyciete.shp'
 graph = make_graph(workspace, layer)
+graph.draw_graph()
 print(graph)

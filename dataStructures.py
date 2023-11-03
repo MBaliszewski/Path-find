@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+
 class Graph:
     def __init__(self, edges, nodes):
         self.edges = edges
@@ -10,6 +12,31 @@ class Graph:
             string += f'Node {node.id}: x={node.x}, y={node.y}, costs: {c}\n'
             
         return string
+
+    def draw_graph(self):
+        # Inicjalizacja wykresu
+        fig, ax = plt.subplots()
+
+        for edge in self.edges:
+            x1, y1 = edge.fromn.x, edge.fromn.y
+            x2, y2 = edge.to.x, edge.to.y
+            ax.plot([x1, x2], [y1, y2], 'bo-')  # rysuj krawędź jako niebieską linię
+
+        for node in self.nodes:
+            ax.plot(node.x, node.y, 'ro')  # rysuj węzeł jako czerwoną kropkę
+            ax.text(node.x, node.y, f'{len(node.edges)}', ha='center', va='center')
+
+        # Dodaj etykiety dla krawędzi
+        for edge in self.edges:
+            x1, y1 = edge.fromn.x, edge.fromn.y
+            x2, y2 = edge.to.x, edge.to.y
+            #ax.annotate(f'Cost: {edge.cost}', ((x1 + x2) / 2, (y1 + y2) / 2), ha='center')
+
+        plt.xlabel("X")
+        plt.ylabel("Y")
+        plt.title("Graph Visualization")
+        plt.grid(True)
+        plt.show()
             
 class Node:
     def __init__(self, id, x, y):
