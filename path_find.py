@@ -222,7 +222,3 @@ def dijkstra(graph):
     ##
 
     return d[end_node], len(visited), sum(visited.values())
-
-#graph = make_graph('dane/graf6.txt')
-#cost, visited_num, visits_num = dijkstra(graph)
-#cost, visited_num, visits_num = astar(graph)
