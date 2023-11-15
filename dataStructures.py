@@ -1,14 +1,20 @@
 import matplotlib.pyplot as plt
 
 class Graph:
-    def __init__(self, edges, nodes):
-        self.edges = edges
-        self.nodes = nodes
+    def __init__(self):
+        self.edges = {}
+        self.nodes = {}
+
+    def add_node(self, node):
+        self.nodes[node.id] = node
+
+    def add_edge(self, node_from, node_to, edge):
+        self.edges[(node_from.id, node_to.id)] = edge
 
     def __str__(self):
         string = ''
-        for node in self.nodes:
-            c = [edge.cost for edge in node.edges]
+        for node in self.nodes.values():
+            c = [edge.cost for edge in node.edges.values()]
             string += f'Node {node.id}: x={node.x}, y={node.y}, costs: {c}\n'
             
         return string
@@ -17,24 +23,18 @@ class Graph:
         # Inicjalizacja wykresu
         fig, ax = plt.subplots()
 
-        for edge in self.edges:
+        for edge in self.edges.values():
             x1, y1 = edge.fromn.x, edge.fromn.y
             x2, y2 = edge.to.x, edge.to.y
             ax.plot([x1, x2], [y1, y2], 'bo-')  # rysuj krawędź jako niebieską linię
 
-        for node in self.nodes:
+        for node in self.nodes.values():
             ax.plot(node.x, node.y, 'ro')  # rysuj węzeł jako czerwoną kropkę
-            ax.text(node.x, node.y, f'{len(node.edges)}', ha='center', va='center')
-
-        # Dodaj etykiety dla krawędzi
-        for edge in self.edges:
-            x1, y1 = edge.fromn.x, edge.fromn.y
-            x2, y2 = edge.to.x, edge.to.y
-            #ax.annotate(f'Cost: {edge.cost}', ((x1 + x2) / 2, (y1 + y2) / 2), ha='center')
+            #ax.text(node.x, node.y, f'{len(node.edges)}', ha='center', va='center')
+            ax.text(node.x, node.y, f'{node.id}', ha='center', va='center')
 
         plt.xlabel("X")
         plt.ylabel("Y")
-        plt.title("Graph Visualization")
         plt.grid(True)
         plt.show()
             
@@ -43,8 +43,11 @@ class Node:
         self.id = id
         self.x = x
         self.y = y
-        self.edges = []
+        self.edges = {}
         self.h = None
+
+    def add_edge(self, node_from, node_to, edge):
+        self.edges[(node_from.id, node_to.id)] = edge
 
     def heuristics(self, x_end, y_end):
         return abs(x_end - self.x) + abs(y_end - self.y)
@@ -53,7 +56,8 @@ class Node:
         return f'Node {self.id}: x={self.x}, y={self.y}'
 
 class Edge:
-    def __init__(self, fromn: Node, to: Node, cost: float):
+    def __init__(self, fromn: Node, to: Node, cost: float, geometry):
         self.fromn = fromn
         self.to = to
         self.cost = cost
+        self.geometry = geometry
