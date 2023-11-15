@@ -2,7 +2,14 @@ import arcpy
 from dataStructures import Graph, Node, Edge
 import math
 
-def save_result(output_path, output_name, geom):
+def save_result(output_path, output_name, path):
+    geom = []
+    for i in range(len(path) - 1):
+        start_node = path[i]
+        end_node = path[i + 1]
+        edge = start_node.edges[(start_node.id, end_node.id)]
+        geom.append(edge.geometry)
+
     arcpy.env.overwriteOutput = True
     arcpy.CreateFeatureclass_management(output_path, output_name, "POLYLINE")
 
@@ -53,14 +60,18 @@ def make_graph(workspace, layer):
             edge = Edge(fromn=node_start, to=node_end, cost=length, geometry=geom)
             graph.add_edge(node_from=node_start, node_to=node_end, edge=edge)
             node_start.add_edge(node_from=node_start, node_to=node_end, edge=edge)
-            node_end.add_edge(node_from=node_start, node_to=node_end, edge=edge)
+            
+            # W ten sposób dublują się krawędzie, ale czy da się inaczej? Bez tego można się zablokować w jakimś wierzchołku
+            edge = Edge(fromn=node_end, to=node_start, cost=length, geometry=geom)
+            graph.add_edge(node_from=node_end, node_to=node_start, edge=edge)
+            node_end.add_edge(node_from=node_end, node_to=node_start, edge=edge)
 
     return graph
 
 
-def dijkstra(graph):
-    start_node = graph.nodes[0]
-    end_node = graph.nodes[-1]
+def dijkstra(graph: Graph):
+    start_node = graph.start_node
+    end_node = graph.end_node
     S = set()
     Q = []
     p = {}
@@ -74,13 +85,14 @@ def dijkstra(graph):
 
     while end_node not in S:
         if len(Q) == 0:
-            return None, None, None
+            print(min_d_node)
+            return None, None
 
         min_d_node = min(Q, key=lambda n: d.get(n, None))  # wybranie z Q node o najmniejszym koszcie dojścia
         Q.remove(min_d_node)  # usunięcie go z Q
         visited[min_d_node] += 1
 
-        for edge in min_d_node.edges:  # sprawdzenie wszystkich sąsiadów wybranego node,
+        for edge in min_d_node.edges.values():  # sprawdzenie wszystkich sąsiadów wybranego node,
             if edge.to not in S:  # którzy nie są w S
                 if edge.to not in d:
                     visited[edge.to] = 1  # odwiedzony po raz pierwszy
@@ -112,7 +124,7 @@ def dijkstra(graph):
     print(f'Arrival cost: {d[end_node]}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
     ##
 
-    return d[end_node], len(visited), sum(visited.values())
+    return path, d[end_node]
 
 
 def retrieve_path(p, s, e):
@@ -130,7 +142,13 @@ def retrieve_path(p, s, e):
 
 workspace = 'dane\\torun'
 #layer = 'L4_1_BDOT10k__OT_SKJZ_L.shp'
-layer = 'testowa.shp'
-#layer = 'przyciete.shp'
+#layer = 'testowa.shp'
+layer = 'przyciete.shp'
 
 graph = make_graph(workspace, layer)
+graph.draw_graph()
+graph.start_node = graph.nodes[73]
+graph.end_node = graph.nodes[730]
+print(graph.start_node, graph.end_node)
+path, _ = dijkstra(graph)
+save_result('E:\sem5\PAG\dane\output', 'result.shp', path)

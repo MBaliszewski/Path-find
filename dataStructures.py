@@ -4,6 +4,8 @@ class Graph:
     def __init__(self):
         self.edges = {}
         self.nodes = {}
+        self.start_node = None
+        self.end_node = None
 
     def add_node(self, node):
         self.nodes[node.id] = node
