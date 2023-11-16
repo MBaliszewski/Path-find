@@ -61,7 +61,6 @@ def make_graph(workspace, layer):
             graph.add_edge(node_from=node_start, node_to=node_end, edge=edge)
             node_start.add_edge(node_from=node_start, node_to=node_end, edge=edge)
             
-            # W ten sposób dublują się krawędzie, ale czy da się inaczej? Bez tego można się zablokować w jakimś wierzchołku
             edge = Edge(fromn=node_end, to=node_start, cost=length, geometry=geom)
             graph.add_edge(node_from=node_end, node_to=node_start, edge=edge)
             node_end.add_edge(node_from=node_end, node_to=node_start, edge=edge)
@@ -90,6 +89,7 @@ def dijkstra(graph: Graph):
 
         min_d_node = min(Q, key=lambda n: d.get(n, None))  # wybranie z Q node o najmniejszym koszcie dojścia
         Q.remove(min_d_node)  # usunięcie go z Q
+        S.add(min_d_node)
         visited[min_d_node] += 1
 
         for edge in min_d_node.edges.values():  # sprawdzenie wszystkich sąsiadów wybranego node,
@@ -107,8 +107,6 @@ def dijkstra(graph: Graph):
                 if edge.to not in Q:  # dodanie do Q
                     Q.append(edge.to)
 
-        S.add(min_d_node)
-
     path = retrieve_path(p, start_node, end_node)
 
     # wyprintowanie wyników
@@ -123,6 +121,77 @@ def dijkstra(graph: Graph):
     print('-----------')
     print(f'Arrival cost: {d[end_node]}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
     ##
+
+    return path, d[end_node]
+
+
+def astar(graph: Graph):
+    start_node = graph.start_node
+    end_node = graph.end_node
+
+    for node in graph.nodes.values():
+        node.heuristics(end_node)
+
+    S = set()
+    Q = {}  # {node: access cost + heuristic}
+    d = {}  # access costs
+    p = {}  # previous node
+    visited = {}  # Number of visits for each visited node
+
+    S.add(start_node)
+    visited[start_node] = 0
+    d[start_node] = 0
+    p[start_node] = None
+    Q[start_node] = 0
+
+
+    while end_node not in S:
+
+        min_f_node = min(Q, key=Q.get) # wybranie z Q node o najmniejszym szacowanym koszcie dojścia
+        del Q[min_f_node]  # i usunięcie go z Q
+        if min_f_node == end_node:
+            break
+        S.add(min_f_node)  # i dodanie go do S
+
+        visited[min_f_node] += 1  # odwiedzony kolejny raz w zbiorze S
+        # przejrzenie sąsiadów node dodanego do S na końcu
+        for edge in min_f_node.edges.values():
+            if edge.to not in S:
+                f = d[edge.fromn] + edge.cost + edge.to.h  # szacowany koszt dojścia do końca
+
+                if edge.to in visited:
+                    visited[edge.to] += 1  # odwiedzony kolejny raz
+                    if f < Q[edge.to]:
+                        d[edge.to] = d[edge.fromn] + edge.cost  # koszt dojścia do node
+                        Q[edge.to] = f
+                        p[edge.to] = edge.fromn  # zapisanie poprzednika
+                    else:
+                        continue
+                else:
+                    visited[edge.to] = 1  # odwiedzony pierwszy raz
+                    d[edge.to] = d[edge.fromn] + edge.cost  # koszt dojścia do node
+                    Q[edge.to] = f
+                    p[edge.to] = edge.fromn  # zapisanie poprzednika
+
+            # Jeśli brak trasy
+            if len(Q) == 0:
+                return None, None
+
+
+    path = retrieve_path(p, start_node, end_node)
+
+   # wyprintowanie wyników
+    print('---------- Path:')
+    for node in path:
+        print(node)
+
+    print('---------- Number of visits for each node:')
+    for key, value in visited.items():
+        print(f'{key}, visited: {value}')
+
+    print('-----------')
+    print(f'Arrival cost: {d[end_node]}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
+    #
 
     return path, d[end_node]
 
@@ -146,9 +215,8 @@ workspace = 'dane\\torun'
 layer = 'przyciete.shp'
 
 graph = make_graph(workspace, layer)
-graph.draw_graph()
 graph.start_node = graph.nodes[73]
 graph.end_node = graph.nodes[730]
-print(graph.start_node, graph.end_node)
-path, _ = dijkstra(graph)
+#path, _ = dijkstra(graph)
+path, _ = astar(graph)
 save_result('E:\sem5\PAG\dane\output', 'result.shp', path)

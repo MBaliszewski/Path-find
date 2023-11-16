@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import math
 
 class Graph:
     def __init__(self):
@@ -51,8 +52,8 @@ class Node:
     def add_edge(self, node_from, node_to, edge):
         self.edges[(node_from.id, node_to.id)] = edge
 
-    def heuristics(self, x_end, y_end):
-        return abs(x_end - self.x) + abs(y_end - self.y)
+    def heuristics(self, end_node):
+        self.h = math.dist([self.x, self.y], [end_node.x, end_node.y])
     
     def __str__(self):
         return f'Node {self.id}: x={self.x}, y={self.y}'
