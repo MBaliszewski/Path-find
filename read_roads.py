@@ -1,6 +1,7 @@
 import arcpy
 from dataStructures import Graph, Node, Edge
 import math
+import time
 
 def save_result(output_path, output_name, path):
     geom = []
@@ -23,6 +24,7 @@ def generate_id_from_xy(x, y):
 
 
 def make_graph(workspace, layer):
+    t1 = time.time()
     arcpy.env.workspace = workspace
 
     nodes = {}              # node id -> node
@@ -30,10 +32,11 @@ def make_graph(workspace, layer):
     graph = Graph()
     generator_node_id = 1
 
-    with arcpy.da.SearchCursor(layer, ['OID@', 'SHAPE@', 'SHAPE@LENGTH']) as cursor:
+    with arcpy.da.SearchCursor(layer, ['OID@', 'SHAPE@', 'SHAPE@LENGTH', 'klasaDrogi']) as cursor:
         for row in cursor:
             geom = row[1]
             length = row[2]
+            road_class = row[3]
             
             x_start =  geom.firstPoint.X
             y_start =  geom.firstPoint.Y
@@ -57,18 +60,21 @@ def make_graph(workspace, layer):
                 graph.add_node(node_end)
                 generator_node_id += 1
 
-            edge = Edge(fromn=node_start, to=node_end, cost=length, geometry=geom)
+            edge = Edge(fromn=node_start, to=node_end, length=length, road_class=road_class, geometry=geom)
             graph.add_edge(node_from=node_start, node_to=node_end, edge=edge)
             node_start.add_edge(node_from=node_start, node_to=node_end, edge=edge)
             
-            edge = Edge(fromn=node_end, to=node_start, cost=length, geometry=geom)
+            edge = Edge(fromn=node_end, to=node_start, length=length, road_class=road_class, geometry=geom)
             graph.add_edge(node_from=node_end, node_to=node_start, edge=edge)
             node_end.add_edge(node_from=node_end, node_to=node_start, edge=edge)
+
+    t2 = time.time()
+    print(f'Graph: {t2 - t1}')
 
     return graph
 
 
-def dijkstra(graph: Graph):
+def dijkstra(graph: Graph, type: str):
     start_node = graph.start_node
     end_node = graph.end_node
     S = set()
@@ -96,12 +102,12 @@ def dijkstra(graph: Graph):
             if edge.to not in S:  # którzy nie są w S
                 if edge.to not in d:
                     visited[edge.to] = 1  # odwiedzony po raz pierwszy
-                    d[edge.to] = d[edge.fromn] + edge.cost  # przypisanie kosztu dojścia po raz pierwszy
+                    d[edge.to] = d[edge.fromn] + edge.get_cost(type)  # przypisanie kosztu dojścia po raz pierwszy
                     p[edge.to] = edge.fromn  # przypisanie poprzednika po raz pierwszy
                 else:
                     visited[edge.to] += 1  # odwiedzony kolejny raz
-                    if d[edge.to] > d[edge.fromn] + edge.cost:  # relaksacja
-                        d[edge.to] = d[edge.fromn] + edge.cost  # nowy koszt dojścia
+                    if d[edge.to] > d[edge.fromn] + edge.get_cost(type):  # relaksacja
+                        d[edge.to] = d[edge.fromn] + edge.get_cost(type)  # nowy koszt dojścia
                         p[edge.to] = edge.fromn  # nowy poprzednik
 
                 if edge.to not in Q:  # dodanie do Q
@@ -210,13 +216,15 @@ def retrieve_path(p, s, e):
 
 
 workspace = 'dane\\torun'
-#layer = 'L4_1_BDOT10k__OT_SKJZ_L.shp'
+layer = 'L4_1_BDOT10k__OT_SKJZ_L.shp'
 #layer = 'testowa.shp'
-layer = 'przyciete.shp'
+#layer = 'przyciete.shp'
 
 graph = make_graph(workspace, layer)
-graph.start_node = graph.nodes[73]
-graph.end_node = graph.nodes[730]
-#path, _ = dijkstra(graph)
-path, _ = astar(graph)
-save_result('E:\sem5\PAG\dane\output', 'result.shp', path)
+graph.start_node = graph.nodes[2481]
+graph.end_node = graph.nodes[4848]
+path, _ = dijkstra(graph, 'shortest')
+path2, _ = dijkstra(graph, 'fastest')
+#path, _ = astar(graph)
+save_result('E:\sem5\PAG\dane\output', 'result_short.shp', path)
+save_result('E:\sem5\PAG\dane\output', 'result_fast.shp', path2)
