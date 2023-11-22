@@ -12,8 +12,8 @@ class Graph:
     def add_node(self, node):
         self.nodes[node.id] = node
 
-    def add_edge(self, node_from, node_to, edge):
-        self.edges[(node_from.id, node_to.id)] = edge
+    def add_edge(self, edge):
+        self.edges[(edge.fromn.id, edge.to.id)] = edge
 
     def __str__(self):
         string = ''
@@ -50,8 +50,8 @@ class Node:
         self.edges = {}
         self.h = None
 
-    def add_edge(self, node_from, node_to, edge):
-        self.edges[(node_from.id, node_to.id)] = edge
+    def add_edge(self, edge):
+        self.edges[(edge.fromn.id, edge.to.id)] = edge
 
     def heuristics(self, end_node, type: str, max_speed: int):
         distance = math.dist([self.x, self.y], [end_node.x, end_node.y])

@@ -31,11 +31,16 @@ def make_graph(workspace, layer):
     graph = Graph()
     generator_node_id = 1
 
-    with arcpy.da.SearchCursor(layer, ['OID@', 'SHAPE@', 'SHAPE@LENGTH', 'klasaDrogi']) as cursor:
+    with arcpy.da.SearchCursor(layer, ['OID@', 'SHAPE@', 'SHAPE@LENGTH', 'klasaDrogi', 'direction']) as cursor:
         for row in cursor:
             geom = row[1]
             length = row[2]
             road_class = row[3]
+            direction = row[4]
+
+            # Nieprzejezdna
+            if direction == '0':
+                continue
             
             x_start =  geom.firstPoint.X
             y_start =  geom.firstPoint.Y
@@ -59,17 +64,33 @@ def make_graph(workspace, layer):
                 graph.add_node(node_end)
                 generator_node_id += 1
 
-            edge = Edge(fromn=node_start, to=node_end, length=length, road_class=road_class, geometry=geom)
-            graph.add_edge(node_from=node_start, node_to=node_end, edge=edge)
-            node_start.add_edge(node_from=node_start, node_to=node_end, edge=edge)
-            if edge.max_speed > graph.max_speed_in_graph:
-                graph.max_speed_in_graph = edge.max_speed
-            
-            edge = Edge(fromn=node_end, to=node_start, length=length, road_class=road_class, geometry=geom)
-            graph.add_edge(node_from=node_end, node_to=node_start, edge=edge)
-            node_end.add_edge(node_from=node_end, node_to=node_start, edge=edge)
-            if edge.max_speed > graph.max_speed_in_graph:
-                graph.max_speed_in_graph = edge.max_speed
+            # Dwukierunkowa
+            if direction == '1':
+                edge = Edge(fromn=node_start, to=node_end, length=length, road_class=road_class, geometry=geom)
+                graph.add_edge(edge=edge)
+                node_start.add_edge(edge=edge)
+                if edge.max_speed > graph.max_speed_in_graph:
+                    graph.max_speed_in_graph = edge.max_speed
+                
+                edge = Edge(fromn=node_end, to=node_start, length=length, road_class=road_class, geometry=geom)
+                graph.add_edge(edge=edge)
+                node_end.add_edge(edge=edge)
+                if edge.max_speed > graph.max_speed_in_graph:
+                    graph.max_speed_in_graph = edge.max_speed
+            # Kierunek zgodny z geometrią
+            elif direction == '2':
+                edge = Edge(fromn=node_start, to=node_end, length=length, road_class=road_class, geometry=geom)
+                graph.add_edge(edge=edge)
+                node_start.add_edge(edge=edge)
+                if edge.max_speed > graph.max_speed_in_graph:
+                    graph.max_speed_in_graph = edge.max_speed
+            # Kierunek przeciwny do geometrii
+            elif direction == '3':
+                edge = Edge(fromn=node_end, to=node_start, length=length, road_class=road_class, geometry=geom)
+                graph.add_edge(edge=edge)
+                node_end.add_edge(edge=edge)
+                if edge.max_speed > graph.max_speed_in_graph:
+                    graph.max_speed_in_graph = edge.max_speed
 
     return graph
 
@@ -213,13 +234,13 @@ def retrieve_path(p, s, e):
 
 
 workspace = 'dane\\torun'
-layer = 'L4_1_BDOT10k__OT_SKJZ_L.shp'
-#layer = 'testowa.shp'
+#layer = 'L4_1_BDOT10k__OT_SKJZ_L.shp'
+layer = 'testowa.shp'
 #layer = 'przyciete.shp'
 
 graph = make_graph(workspace, layer)
-graph.start_node = graph.nodes[220]
-graph.end_node = graph.nodes[5382]
+graph.start_node = graph.nodes[1]
+graph.end_node = graph.nodes[6]
 path, _ = astar(graph, 'shortest')
 path2, _ = astar(graph, 'fastest')
 #path, _ = astar(graph)
