@@ -24,7 +24,6 @@ def generate_id_from_xy(x, y):
 
 
 def make_graph(workspace, layer):
-    t1 = time.time()
     arcpy.env.workspace = workspace
 
     nodes = {}              # node id -> node
@@ -63,13 +62,14 @@ def make_graph(workspace, layer):
             edge = Edge(fromn=node_start, to=node_end, length=length, road_class=road_class, geometry=geom)
             graph.add_edge(node_from=node_start, node_to=node_end, edge=edge)
             node_start.add_edge(node_from=node_start, node_to=node_end, edge=edge)
+            if edge.max_speed > graph.max_speed_in_graph:
+                graph.max_speed_in_graph = edge.max_speed
             
             edge = Edge(fromn=node_end, to=node_start, length=length, road_class=road_class, geometry=geom)
             graph.add_edge(node_from=node_end, node_to=node_start, edge=edge)
             node_end.add_edge(node_from=node_end, node_to=node_start, edge=edge)
-
-    t2 = time.time()
-    print(f'Graph: {t2 - t1}')
+            if edge.max_speed > graph.max_speed_in_graph:
+                graph.max_speed_in_graph = edge.max_speed
 
     return graph
 
@@ -131,12 +131,12 @@ def dijkstra(graph: Graph, type: str):
     return path, d[end_node]
 
 
-def astar(graph: Graph):
+def astar(graph: Graph, type: str):
     start_node = graph.start_node
     end_node = graph.end_node
 
     for node in graph.nodes.values():
-        node.heuristics(end_node)
+        node.heuristics(end_node, type, graph.max_speed_in_graph)
 
     S = set()
     Q = {}  # {node: access cost + heuristic}
@@ -150,9 +150,7 @@ def astar(graph: Graph):
     p[start_node] = None
     Q[start_node] = 0
 
-
     while end_node not in S:
-
         min_f_node = min(Q, key=Q.get) # wybranie z Q node o najmniejszym szacowanym koszcie dojścia
         del Q[min_f_node]  # i usunięcie go z Q
         if min_f_node == end_node:
@@ -163,26 +161,25 @@ def astar(graph: Graph):
         # przejrzenie sąsiadów node dodanego do S na końcu
         for edge in min_f_node.edges.values():
             if edge.to not in S:
-                f = d[edge.fromn] + edge.cost + edge.to.h  # szacowany koszt dojścia do końca
+                f = d[edge.fromn] + edge.get_cost(type)+ edge.to.h  # szacowany koszt dojścia do końca
 
                 if edge.to in visited:
                     visited[edge.to] += 1  # odwiedzony kolejny raz
                     if f < Q[edge.to]:
-                        d[edge.to] = d[edge.fromn] + edge.cost  # koszt dojścia do node
+                        d[edge.to] = d[edge.fromn] + edge.get_cost(type)  # koszt dojścia do node
                         Q[edge.to] = f
                         p[edge.to] = edge.fromn  # zapisanie poprzednika
                     else:
                         continue
                 else:
                     visited[edge.to] = 1  # odwiedzony pierwszy raz
-                    d[edge.to] = d[edge.fromn] + edge.cost  # koszt dojścia do node
+                    d[edge.to] = d[edge.fromn] + edge.get_cost(type)  # koszt dojścia do node
                     Q[edge.to] = f
                     p[edge.to] = edge.fromn  # zapisanie poprzednika
 
-            # Jeśli brak trasy
-            if len(Q) == 0:
-                return None, None
-
+        # Jeśli brak trasy
+        if len(Q) == 0:
+            return None, None
 
     path = retrieve_path(p, start_node, end_node)
 
@@ -221,10 +218,10 @@ layer = 'L4_1_BDOT10k__OT_SKJZ_L.shp'
 #layer = 'przyciete.shp'
 
 graph = make_graph(workspace, layer)
-graph.start_node = graph.nodes[2481]
-graph.end_node = graph.nodes[4848]
-path, _ = dijkstra(graph, 'shortest')
-path2, _ = dijkstra(graph, 'fastest')
+graph.start_node = graph.nodes[220]
+graph.end_node = graph.nodes[5382]
+path, _ = astar(graph, 'shortest')
+path2, _ = astar(graph, 'fastest')
 #path, _ = astar(graph)
 save_result('E:\sem5\PAG\dane\output', 'result_short.shp', path)
 save_result('E:\sem5\PAG\dane\output', 'result_fast.shp', path2)

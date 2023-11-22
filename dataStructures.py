@@ -7,6 +7,7 @@ class Graph:
         self.nodes = {}
         self.start_node = None
         self.end_node = None
+        self.max_speed_in_graph = 0
 
     def add_node(self, node):
         self.nodes[node.id] = node
@@ -52,34 +53,39 @@ class Node:
     def add_edge(self, node_from, node_to, edge):
         self.edges[(node_from.id, node_to.id)] = edge
 
-    def heuristics(self, end_node):
-        self.h = math.dist([self.x, self.y], [end_node.x, end_node.y])
+    def heuristics(self, end_node, type: str, max_speed: int):
+        distance = math.dist([self.x, self.y], [end_node.x, end_node.y])
+        if type == 'shortest':
+            self.h = distance
+        elif type == 'fastest':
+            self.h = (distance / 1000) / 120
     
     def __str__(self):
         return f'Node {self.id}: x={self.x}, y={self.y}'
 
 class Edge:
+    types = {'A': 120,
+            'S': 100,
+            'GP': 90,
+            'G': 70,
+            'Z': 60,
+            'L': 50,
+            'D': 30,
+            'I': 20}
+
     def __init__(self, fromn: Node, to: Node, length: float, road_class: str, geometry):
         self.fromn = fromn
         self.to = to
         self.length = length
         self.road_class = road_class
+        self.max_speed = self.types[self.road_class]
         self.geometry = geometry
 
     def count_time(self, max_speed):
         return (self.length / 1000) / max_speed
 
     def get_cost(self, type: str):
-        types = {'A': 120,
-                 'S': 100,
-                 'GP': 90,
-                 'G': 70,
-                 'Z': 60,
-                 'L': 50,
-                 'D': 30,
-                 'I': 20}
-
         if type == 'shortest':
             return self.length
         elif type == 'fastest':
-            return self.count_time(types[self.road_class])
+            return self.count_time(self.max_speed)
