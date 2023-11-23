@@ -152,7 +152,7 @@ def dijkstra(graph: Graph, type: str):
     return path, d[end_node]
 
 
-def astar(graph: Graph, type: str):
+def astar(graph: Graph, type: str, alternative = False):
     start_node = graph.start_node
     end_node = graph.end_node
 
@@ -204,18 +204,24 @@ def astar(graph: Graph, type: str):
 
     path = retrieve_path(p, start_node, end_node)
 
-   # wyprintowanie wyników
-    print('---------- Path:')
-    for node in path:
-        print(node)
+    # wyprintowanie wyników
+    # print('---------- Path:')
+    # for node in path:
+    #     print(node)
 
-    print('---------- Number of visits for each node:')
-    for key, value in visited.items():
-        print(f'{key}, visited: {value}')
+    # print('---------- Number of visits for each node:')
+    # for key, value in visited.items():
+    #     print(f'{key}, visited: {value}')
 
     print('-----------')
     print(f'Arrival cost: {d[end_node]}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
     #
+
+    if alternative:
+        graph.set_val_of_in_prev_path(prev_path=path, value=True)
+        alternative_path, _ = astar(graph, type, alternative=False)
+        graph.set_val_of_in_prev_path(prev_path=path, value=False)
+        return [path, alternative_path], d[end_node]
 
     return path, d[end_node]
 
@@ -240,9 +246,8 @@ layer = 'testowa.shp'
 
 graph = make_graph(workspace, layer)
 graph.start_node = graph.nodes[1]
-graph.end_node = graph.nodes[6]
-path, _ = astar(graph, 'shortest')
-path2, _ = astar(graph, 'fastest')
+graph.end_node = graph.nodes[8]
+paths, _ = astar(graph=graph, type='fastest', alternative=True)
 #path, _ = astar(graph)
-save_result('E:\sem5\PAG\dane\output', 'result_short.shp', path)
-save_result('E:\sem5\PAG\dane\output', 'result_fast.shp', path2)
+save_result('E:\sem5\PAG\dane\output', 'result_path_first.shp', paths[0])
+save_result('E:\sem5\PAG\dane\output', 'result_path_second.shp', paths[1])

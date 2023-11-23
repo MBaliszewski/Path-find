@@ -15,6 +15,13 @@ class Graph:
     def add_edge(self, edge):
         self.edges[(edge.fromn.id, edge.to.id)] = edge
 
+    def set_val_of_in_prev_path(self, prev_path, value):
+        for i in range(len(prev_path) - 1):
+            node_first = prev_path[i]
+            node_last = prev_path[i + 1]
+            edge = node_first.edges[(node_first.id, node_last.id)]
+            edge.in_prev_path = value
+
     def __str__(self):
         string = ''
         for node in self.nodes.values():
@@ -80,12 +87,17 @@ class Edge:
         self.road_class = road_class
         self.max_speed = self.types[self.road_class]
         self.geometry = geometry
+        self.in_prev_path = False
 
     def count_time(self, max_speed):
         return (self.length / 1000) / max_speed
 
     def get_cost(self, type: str):
+        mulitplier = 1
+        if self.in_prev_path:
+            mulitplier = 2
+
         if type == 'shortest':
-            return self.length
+            return self.length * mulitplier
         elif type == 'fastest':
-            return self.count_time(self.max_speed)
+            return self.count_time(self.max_speed) * mulitplier
