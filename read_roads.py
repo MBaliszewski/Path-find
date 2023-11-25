@@ -1,7 +1,28 @@
 import arcpy
 from dataStructures import Graph, Node, Edge
 import math
-import time
+import pyproj
+
+
+def xy_from_path(path):
+    x = []
+    y = []
+    transformer = pyproj.Transformer.from_crs('EPSG:2180', 'EPSG:4326', always_xy=True)
+
+    for i in range(len(path) - 1):
+        node_first = path[i]
+        node_last = path[i + 1]
+        edge = node_first.edges[(node_first.id, node_last.id)]
+        
+        for part in edge.geometry:
+            for vertex in part:
+                x_2180, y_2180 = vertex.X, vertex.Y
+                y_4326, x_4326 = transformer.transform(x_2180, y_2180)
+                x.append(x_4326)
+                y.append(y_4326)
+
+    return x, y
+
 
 def save_result(output_path, output_name, path):
     geom = []
@@ -239,15 +260,15 @@ def retrieve_path(p, s, e):
     return path
 
 
-workspace = 'dane\\torun'
-#layer = 'L4_1_BDOT10k__OT_SKJZ_L.shp'
-layer = 'testowa.shp'
-#layer = 'przyciete.shp'
+# workspace = 'dane\\torun'
+# #layer = 'L4_1_BDOT10k__OT_SKJZ_L.shp'
+# layer = 'testowa.shp'
+# #layer = 'przyciete.shp'
 
-graph = make_graph(workspace, layer)
-graph.start_node = graph.nodes[1]
-graph.end_node = graph.nodes[8]
-paths, _ = astar(graph=graph, type='fastest', alternative=True)
-#path, _ = astar(graph)
-save_result('E:\sem5\PAG\dane\output', 'result_path_first.shp', paths[0])
-save_result('E:\sem5\PAG\dane\output', 'result_path_second.shp', paths[1])
+# graph = make_graph(workspace, layer)
+# graph.start_node = graph.nodes[1]
+# graph.end_node = graph.nodes[8]
+# paths, _ = astar(graph=graph, type='fastest', alternative=True)
+# #path, _ = astar(graph)
+# save_result('E:\sem5\PAG\dane\output', 'result_path_first.shp', paths[0])
+# save_result('E:\sem5\PAG\dane\output', 'result_path_second.shp', paths[1])

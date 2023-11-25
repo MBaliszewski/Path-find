@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import math
+import pyproj
 
 class Graph:
     def __init__(self):
@@ -50,15 +51,21 @@ class Graph:
         plt.show()
             
 class Node:
+    transformer = pyproj.Transformer.from_crs('EPSG:2180', 'EPSG:4326', always_xy=True)
+
     def __init__(self, id, x, y):
         self.id = id
         self.x = x
         self.y = y
+        self.y_4326, self.x_4326 = self.convert_to_4326()
         self.edges = {}
         self.h = None
 
     def add_edge(self, edge):
         self.edges[(edge.fromn.id, edge.to.id)] = edge
+
+    def convert_to_4326(self):
+        return self.transformer.transform(self.x, self.y)
 
     def heuristics(self, end_node, type: str, max_speed: int):
         distance = math.dist([self.x, self.y], [end_node.x, end_node.y])
