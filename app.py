@@ -52,13 +52,14 @@ app.layout = html.Div([
 @app.callback(
     Output('map', 'figure'),
     Input('map', 'selectedData'),
-    Input('clear-btn', 'n_clicks'))
-def display_click_data(clickData, n_clicks):
+    Input('clear-btn', 'n_clicks'),
+    State('map', 'figure'))
+def display_click_data(clickData, n_clicks, current_fig):
     triggered = ctx.triggered_id
 
     if triggered == 'clear-btn':
-        if n_clicks != 0:
-            print(n_clicks)
+        fig.data = [fig.data[0]]
+        all_data.clear()
         return fig
     if triggered == 'map':
         if clickData is not None:
@@ -97,13 +98,8 @@ def display_click_data(clickData, n_clicks):
                     line=dict(width=4)
                 ))
 
-                return fig            
-
-            return fig
-        else:
-            return fig
-    return fig
-
+            return fig    
+    return current_fig
 
 if __name__ == '__main__':
     app.run(debug=True)
