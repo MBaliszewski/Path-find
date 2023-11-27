@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc, Input, Output, callback, State
+from dash import Dash, html, dcc, Input, Output, callback, State, ctx
 import plotly.graph_objects as go
 import numpy as np
 import json
@@ -43,54 +43,65 @@ app.layout = html.Div([
     dcc.Graph(id='map',
               figure=fig,
               style={'width': '100%', 'height': '100vh'}),
+
+    html.Button('CLEAR', id='clear-btn',
+                style={'width:': 'auto', 'marginLeft': '40px'})
 ])
 
 
 @app.callback(
     Output('map', 'figure'),
-    Input('map', 'selectedData'))
-def display_click_data(clickData):
-    if clickData is not None:
-        lat = clickData['points'][0]['lat']
-        lon = clickData['points'][0]['lon']
-        
-        fig.add_trace(go.Scattermapbox(
-            lat=[lat],
-            lon=[lon],
-            mode='markers',
-            showlegend=False,
-            name='',
-            hoverinfo='none',
-            marker=go.scattermapbox.Marker(
-                    size=10,
-                    color='rgb(0, 0, 204)',
-            ),
-        ))
+    Input('map', 'selectedData'),
+    Input('clear-btn', 'n_clicks'))
+def display_click_data(clickData, n_clicks):
+    triggered = ctx.triggered_id
 
-        all_data.append(clickData)
-        if len(all_data) == 2:
-            node_start_id = all_data[0]['points'][0]['pointIndex']
-            node_end_id = all_data[1]['points'][0]['pointIndex']
-            graph.start_node = graph.nodes[node_start_id + 1]
-            graph.end_node = graph.nodes[node_end_id + 1]
-            path, _ = astar(graph, 'fastest')
-            lats, lons = xy_from_path(path)
-
+    if triggered == 'clear-btn':
+        if n_clicks != 0:
+            print(n_clicks)
+        return fig
+    if triggered == 'map':
+        if clickData is not None:
+            lat = clickData['points'][0]['lat']
+            lon = clickData['points'][0]['lon']
+            
             fig.add_trace(go.Scattermapbox(
-                lat=lats,
-                lon=lons,
-                mode='lines',
+                lat=[lat],
+                lon=[lon],
+                mode='markers',
                 showlegend=False,
                 name='',
                 hoverinfo='none',
-                line=dict(width=4)
+                marker=go.scattermapbox.Marker(
+                        size=10,
+                        color='rgb(0, 0, 204)',
+                ),
             ))
 
-            return fig            
+            all_data.append(clickData)
+            if len(all_data) == 2:
+                node_start_id = all_data[0]['points'][0]['pointIndex']
+                node_end_id = all_data[1]['points'][0]['pointIndex']
+                graph.start_node = graph.nodes[node_start_id + 1]
+                graph.end_node = graph.nodes[node_end_id + 1]
+                path, _ = astar(graph, 'fastest')
+                lats, lons = xy_from_path(path)
 
-        return fig
-    else:
-        return fig
+                fig.add_trace(go.Scattermapbox(
+                    lat=lats,
+                    lon=lons,
+                    mode='lines',
+                    showlegend=False,
+                    name='',
+                    hoverinfo='none',
+                    line=dict(width=4)
+                ))
+
+                return fig            
+
+            return fig
+        else:
+            return fig
 
 
 if __name__ == '__main__':
