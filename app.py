@@ -102,6 +102,7 @@ def display_click_data(clickData, n_clicks):
             return fig
         else:
             return fig
+    return fig
 
 
 if __name__ == '__main__':
