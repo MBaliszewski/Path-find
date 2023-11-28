@@ -2,6 +2,7 @@ import arcpy
 from dataStructures import Graph, Node, Edge
 import math
 import pyproj
+import numpy as np
 
 
 def xy_from_path(path):
@@ -14,13 +15,22 @@ def xy_from_path(path):
         node_last = path[i + 1]
         edge = node_first.edges[(node_first.id, node_last.id)]
         
+        temp_x = []
+        temp_y = []
         for part in edge.geometry:
             for vertex in part:
                 x_2180, y_2180 = vertex.X, vertex.Y
                 y_4326, x_4326 = transformer.transform(x_2180, y_2180)
-                x.append(x_4326)
-                y.append(y_4326)
+                temp_x.append(x_4326)
+                temp_y.append(y_4326)
 
+        if edge.flip:
+            temp_x.reverse()
+            temp_y.reverse()
+
+        x.extend(temp_x)
+        y.extend(temp_y)
+    
     return x, y
 
 
@@ -93,7 +103,7 @@ def make_graph(workspace, layer):
                 if edge.max_speed > graph.max_speed_in_graph:
                     graph.max_speed_in_graph = edge.max_speed
                 
-                edge = Edge(fromn=node_end, to=node_start, length=length, road_class=road_class, geometry=geom)
+                edge = Edge(fromn=node_end, to=node_start, length=length, road_class=road_class, geometry=geom, flip=True)
                 graph.add_edge(edge=edge)
                 node_end.add_edge(edge=edge)
                 if edge.max_speed > graph.max_speed_in_graph:
@@ -107,7 +117,7 @@ def make_graph(workspace, layer):
                     graph.max_speed_in_graph = edge.max_speed
             # Kierunek przeciwny do geometrii
             elif direction == '3':
-                edge = Edge(fromn=node_end, to=node_start, length=length, road_class=road_class, geometry=geom)
+                edge = Edge(fromn=node_end, to=node_start, length=length, road_class=road_class, geometry=geom, flip=True)
                 graph.add_edge(edge=edge)
                 node_end.add_edge(edge=edge)
                 if edge.max_speed > graph.max_speed_in_graph:

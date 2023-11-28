@@ -91,7 +91,7 @@ def display_click_data(clickData, n_clicks, current_fig):
                 fig.add_trace(go.Scattermapbox(
                     lat=lats,
                     lon=lons,
-                    mode='lines',
+                    mode='lines',   
                     showlegend=False,
                     name='',
                     hoverinfo='none',

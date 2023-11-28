@@ -78,22 +78,23 @@ class Node:
         return f'Node {self.id}: x={self.x}, y={self.y}'
 
 class Edge:
-    types = {'A': 120,
-            'S': 100,
-            'GP': 90,
-            'G': 70,
-            'Z': 60,
-            'L': 50,
-            'D': 30,
-            'I': 20}
+    types = {'A': 140,
+            'S': 120,
+            'GP': 100,
+            'G': 80,
+            'Z': 50,
+            'L': 40,
+            'D': 20,
+            'I': 5}
 
-    def __init__(self, fromn: Node, to: Node, length: float, road_class: str, geometry):
+    def __init__(self, fromn: Node, to: Node, length: float, road_class: str, geometry, flip=False):
         self.fromn = fromn
         self.to = to
         self.length = length
         self.road_class = road_class
         self.max_speed = self.types[self.road_class]
         self.geometry = geometry
+        self.flip = flip
         self.in_prev_path = False
 
     def count_time(self, max_speed):
