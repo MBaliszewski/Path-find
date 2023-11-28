@@ -25,8 +25,8 @@ fig = go.Figure(go.Scattermapbox(
     lat=[node.x_4326 for node in graph.nodes.values()],
     lon=[node.y_4326 for node in graph.nodes.values()],
     mode='markers',
-    showlegend=False,
-    name='',
+    showlegend=True,
+    name='nodes',
     hoverinfo='none',
     marker=go.scattermapbox.Marker(
             size=5,
@@ -69,7 +69,6 @@ def display_click_data(clickData, n_clicks):
 
     if triggered == 'clear-btn':
         fig.data = [fig.data[0]]
-        fig.data[0]['visible'] = True
         all_data.clear()
         return fig, False
     if triggered == 'map':
