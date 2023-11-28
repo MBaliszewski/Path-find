@@ -7,15 +7,19 @@ from read_roads import make_graph, astar, dijkstra, xy_from_path
 #############
 workspace = 'dane\\torun'
 layer = 'L4_1_BDOT10k__OT_SKJZ_L.shp'
-#layer = 'testowa.shp'
-graph = make_graph(workspace, layer)
+algorithm = 'astar'
+type = 'fastest'
+alternative_path = True
 #############
+
+graph = make_graph(workspace, layer)
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 all_data = []
+colors = ['rgba(0, 13, 255, 0.92)', 'rgba(0, 13, 255, 0.52)']
 
 fig = go.Figure(go.Scattermapbox(
     lat=[node.x_4326 for node in graph.nodes.values()],
@@ -45,22 +49,29 @@ app.layout = html.Div([
               style={'width': '100%', 'height': '100vh'}),
 
     html.Button('CLEAR', id='clear-btn',
-                style={'width:': 'auto', 'marginLeft': '40px'})
+                style={'width:': 'auto', 'marginLeft': '40px'}),
+
+    dcc.ConfirmDialog(
+        id='alert',
+        message='No path found between selected points.',
+        displayed=False,
+    ),
 ])
 
 
 @app.callback(
     Output('map', 'figure'),
+    Output('alert', 'displayed'),
     Input('map', 'selectedData'),
-    Input('clear-btn', 'n_clicks'),
-    State('map', 'figure'))
-def display_click_data(clickData, n_clicks, current_fig):
+    Input('clear-btn', 'n_clicks'))
+def display_click_data(clickData, n_clicks):
     triggered = ctx.triggered_id
 
     if triggered == 'clear-btn':
         fig.data = [fig.data[0]]
+        fig.data[0]['visible'] = True
         all_data.clear()
-        return fig
+        return fig, False
     if triggered == 'map':
         if clickData is not None:
             lat = clickData['points'][0]['lat']
@@ -85,21 +96,29 @@ def display_click_data(clickData, n_clicks, current_fig):
                 node_end_id = all_data[1]['points'][0]['pointIndex']
                 graph.start_node = graph.nodes[node_start_id + 1]
                 graph.end_node = graph.nodes[node_end_id + 1]
-                path, _ = astar(graph, 'fastest')
-                lats, lons = xy_from_path(path)
 
-                fig.add_trace(go.Scattermapbox(
-                    lat=lats,
-                    lon=lons,
-                    mode='lines',   
-                    showlegend=False,
-                    name='',
-                    hoverinfo='none',
-                    line=dict(width=4)
-                ))
+                if algorithm == 'astar':
+                    paths, _ = astar(graph, type, alternative_path)
+                elif algorithm == 'dijkstra':
+                    paths, _ = dijkstra(graph, type)
+ 
+                if paths is None:
+                    return fig, True
+                else:
+                    for idx, path in enumerate(paths):
+                        lats, lons = xy_from_path(path)
+                        fig.add_trace(go.Scattermapbox(
+                            lat=lats,
+                            lon=lons,
+                            mode='lines',   
+                            showlegend=False,
+                            name='',
+                            hoverinfo='none',
+                            line=dict(width=5, color=colors[idx])
+                        ))
 
-            return fig    
-    return current_fig
+            return fig, False    
+    return fig, False
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -30,7 +30,7 @@ def xy_from_path(path):
 
         x.extend(temp_x)
         y.extend(temp_y)
-    
+
     return x, y
 
 
@@ -142,7 +142,6 @@ def dijkstra(graph: Graph, type: str):
 
     while end_node not in S:
         if len(Q) == 0:
-            print(min_d_node)
             return None, None
 
         min_d_node = min(Q, key=lambda n: d.get(n, None))  # wybranie z Q node o najmniejszym koszcie dojścia
@@ -168,19 +167,19 @@ def dijkstra(graph: Graph, type: str):
     path = retrieve_path(p, start_node, end_node)
 
     # wyprintowanie wyników
-    print('---------- Path:')
-    for node in path:
-        print(node)
+    # print('---------- Path:')
+    # for node in path:
+    #     print(node)
 
-    print('---------- Number of visits for each node:')
-    for key, value in visited.items():
-        print(f'{key}, visited: {value}')
+    # print('---------- Number of visits for each node:')
+    # for key, value in visited.items():
+    #     print(f'{key}, visited: {value}')
 
     print('-----------')
-    print(f'Arrival cost: {d[end_node]}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
+    print(f'Arrival cost: {d[end_node] * 60 if "fastest" else d[end_node]}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
     ##
 
-    return path, d[end_node]
+    return [path], d[end_node] * 60 if "fastest" else d[end_node]
 
 
 def astar(graph: Graph, type: str, alternative = False):
@@ -245,17 +244,16 @@ def astar(graph: Graph, type: str, alternative = False):
     #     print(f'{key}, visited: {value}')
 
     print('-----------')
-    print(f'Arrival cost: {d[end_node]}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
+    print(f'Arrival cost: {d[end_node] * 60 if "fastest" else d[end_node]}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
     #
 
     if alternative:
         graph.set_val_of_in_prev_path(prev_path=path, value=True)
         alternative_path, _ = astar(graph, type, alternative=False)
         graph.set_val_of_in_prev_path(prev_path=path, value=False)
-        return [path, alternative_path], d[end_node]
+        return [path, alternative_path[0]], d[end_node] * 60 if 'fastest' else d[end_node]
 
-    return path, d[end_node]
-
+    return [path], d[end_node] * 60 if 'fastest' else d[end_node]
 
 def retrieve_path(p, s, e):
     path = []

@@ -103,7 +103,7 @@ class Edge:
     def get_cost(self, type: str):
         mulitplier = 1
         if self.in_prev_path:
-            mulitplier = 2
+            mulitplier = 6
 
         if type == 'shortest':
             return self.length * mulitplier
