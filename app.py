@@ -45,6 +45,7 @@ fig.update_layout(
 )
 
 app.layout = html.Div([
+    html.H1("Wyszukiwanie najszybszej trasy", style={'textAlign': 'center'}),
     dcc.Graph(id='map',
               figure=fig,
               style={'width': '100%', 'height': '100vh'}),
