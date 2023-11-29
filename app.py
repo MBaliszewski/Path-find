@@ -20,13 +20,14 @@ app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 all_data = []
 colors = ['rgba(0, 13, 255, 0.92)', 'rgba(0, 13, 255, 0.52)']
+names = ['Path', 'Alternative path']
 
 fig = go.Figure(go.Scattermapbox(
     lat=[node.x_4326 for node in graph.nodes.values()],
     lon=[node.y_4326 for node in graph.nodes.values()],
     mode='markers',
     showlegend=True,
-    name='nodes',
+    name='Nodes',
     hoverinfo='none',
     marker=go.scattermapbox.Marker(
             size=5,
@@ -49,7 +50,7 @@ app.layout = html.Div([
               style={'width': '100%', 'height': '100vh'}),
 
     html.Button('CLEAR', id='clear-btn',
-                style={'width:': 'auto', 'marginLeft': '40px'}),
+                style={'width:': '100vh', 'marginLeft': '80px'}),
 
     dcc.ConfirmDialog(
         id='alert',
@@ -84,11 +85,11 @@ def display_click_data(clickData, n_clicks):
                 name='',
                 hoverinfo='none',
                 marker=go.scattermapbox.Marker(
-                        size=10,
-                        color='rgb(0, 0, 204)',
+                    size=10,
+                    color='rgb(0, 0, 204)',
                 ),
             ))
-
+            
             all_data.append(clickData)
             if len(all_data) == 2:
                 node_start_id = all_data[0]['points'][0]['pointIndex']
@@ -110,12 +111,38 @@ def display_click_data(clickData, n_clicks):
                             lat=lats,
                             lon=lons,
                             mode='lines',   
-                            showlegend=False,
-                            name='',
+                            showlegend=True,
+                            name=names[idx],
                             hoverinfo='none',
                             line=dict(width=5, color=colors[idx])
                         ))
 
+                        fig.add_trace(go.Scattermapbox(
+                            lat=[lats[0]],
+                            lon=[lons[0]],
+                            mode='markers',
+                            showlegend=False,
+                            name='',
+                            hovertemplate='START',
+                            marker=go.scattermapbox.Marker(
+                                size=16,
+                                color='rgb(0, 0, 204)',
+                            ),
+                        ))
+
+                        fig.add_trace(go.Scattermapbox(
+                            lat=[lats[-1]],
+                            lon=[lons[-1]],
+                            mode='markers',
+                            showlegend=False,
+                            name='',
+                            hovertemplate='STOP',
+                            marker=go.scattermapbox.Marker(
+                                size=16,
+                                color='rgb(0, 0, 204)',
+                            ),
+                        ))
+                        
             return fig, False    
     return fig, False
 
