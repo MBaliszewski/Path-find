@@ -50,7 +50,7 @@ app.layout = html.Div([
               style={'width': '100%', 'height': '100vh'}),
 
     html.Button('CLEAR', id='clear-btn',
-                style={'width:': '100vh', 'marginLeft': '80px'}),
+                style={'width': '80%', 'marginLeft': '8%', 'marginRight': '12%'}),
 
     dcc.ConfirmDialog(
         id='alert',
