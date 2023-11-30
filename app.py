@@ -7,7 +7,7 @@ from read_roads import make_graph, astar, dijkstra, xy_from_path
 #############
 workspace = 'dane\\torun'
 layer = 'L4_1_BDOT10k__OT_SKJZ_L.shp'
-algorithm = 'astar'
+algorithm = 'dijkstra'
 type = 'fastest'
 alternative_path = True
 #############
@@ -45,7 +45,6 @@ fig.update_layout(
 )
 
 app.layout = html.Div([
-    html.H1("Wyszukiwanie najszybszej trasy", style={'textAlign': 'center'}),
     dcc.Graph(id='map',
               figure=fig,
               style={'width': '100%', 'height': '100vh'}),
@@ -101,7 +100,7 @@ def display_click_data(clickData, n_clicks):
                 if algorithm == 'astar':
                     paths, _ = astar(graph, type, alternative_path)
                 elif algorithm == 'dijkstra':
-                    paths, _ = dijkstra(graph, type)
+                    paths, _ = dijkstra(graph, type, alternative_path)
  
                 if paths is None:
                     return fig, True

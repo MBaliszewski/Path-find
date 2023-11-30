@@ -125,62 +125,54 @@ def make_graph(workspace, layer):
 
     return graph
 
+import heapdict
 
-def dijkstra(graph: Graph, type: str):
+def dijkstra(graph: Graph, type: str, alternative = False):
     start_node = graph.start_node
     end_node = graph.end_node
     S = set()
-    Q = []
     p = {}
-    d = {}
+    Q = heapdict.heapdict()  # Używamy heapdict jako kolejki priorytetowej
     visited = {}
 
-    Q.append(start_node)
+    Q[start_node] = 0
     visited[start_node] = 1
-    d[start_node] = 0
     p[start_node] = None
 
     while end_node not in S:
         if len(Q) == 0:
             return None, None
 
-        min_d_node = min(Q, key=lambda n: d.get(n, None))  # wybranie z Q node o najmniejszym koszcie dojścia
-        Q.remove(min_d_node)  # usunięcie go z Q
+        min_d_node, min_d_cost = Q.popitem()  # Wybieramy wierzchołek o najmniejszym koszcie z d i usuwamy go
         S.add(min_d_node)
         visited[min_d_node] += 1
 
-        for edge in min_d_node.edges.values():  # sprawdzenie wszystkich sąsiadów wybranego node,
-            if edge.to not in S:  # którzy nie są w S
-                if edge.to not in d:
-                    visited[edge.to] = 1  # odwiedzony po raz pierwszy
-                    d[edge.to] = d[edge.fromn] + edge.get_cost(type)  # przypisanie kosztu dojścia po raz pierwszy
-                    p[edge.to] = edge.fromn  # przypisanie poprzednika po raz pierwszy
-                else:
-                    visited[edge.to] += 1  # odwiedzony kolejny raz
-                    if d[edge.to] > d[edge.fromn] + edge.get_cost(type):  # relaksacja
-                        d[edge.to] = d[edge.fromn] + edge.get_cost(type)  # nowy koszt dojścia
-                        p[edge.to] = edge.fromn  # nowy poprzednik
+        for edge in min_d_node.edges.values():  # Sprawdzamy sąsiadów wybranego wierzchołka
+            if edge.to not in S:  # Jeśli sąsiad nie jest w zbiorze odwiedzonych wierzchołków
+                f = min_d_cost + edge.get_cost(type)  # Koszt dojścia
 
-                if edge.to not in Q:  # dodanie do Q
-                    Q.append(edge.to)
+                if edge.to not in Q:
+                    visited[edge.to] = 1  # Odwiedzony po raz pierwszy
+                    Q[edge.to] = f  # Przypisanie kosztu dojścia
+                    p[edge.to] = min_d_node  # Poprzednik
+                else:
+                    visited[edge.to] += 1  # Odwiedzony kolejny raz
+                    if f < Q[edge.to]:
+                        Q[edge.to] = f  # Nowy koszt dojścia
+                        p[edge.to] = min_d_node  # Nowy poprzednik
 
     path = retrieve_path(p, start_node, end_node)
 
-    # wyprintowanie wyników
-    # print('---------- Path:')
-    # for node in path:
-    #     print(node)
-
-    # print('---------- Number of visits for each node:')
-    # for key, value in visited.items():
-    #     print(f'{key}, visited: {value}')
-
     print('-----------')
-    print(f'Arrival cost: {d[end_node] * 60 if "fastest" else d[end_node]}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
-    ##
+    print(f'Arrival cost: {min_d_cost * 60 if "fastest" else min_d_cost}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
 
-    return [path], d[end_node] * 60 if "fastest" else d[end_node]
+    if alternative:
+        graph.set_val_of_in_prev_path(prev_path=path, value=True)
+        alternative_path, _ = astar(graph, type, alternative=False)
+        graph.set_val_of_in_prev_path(prev_path=path, value=False)
+        return [path, alternative_path[0]], min_d_cost * 60 if 'fastest' else min_d_cost
 
+    return [path], min_d_cost * 60 if "fastest" else min_d_cost
 
 def astar(graph: Graph, type: str, alternative = False):
     start_node = graph.start_node
