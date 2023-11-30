@@ -3,7 +3,7 @@ from dataStructures import Graph, Node, Edge
 import math
 import pyproj
 import numpy as np
-
+import heapdict
 
 def xy_from_path(path):
     x = []
@@ -190,7 +190,7 @@ def astar(graph: Graph, type: str, alternative = False):
         node.heuristics(end_node, type, graph.max_speed_in_graph)
 
     S = set()
-    Q = {}  # {node: access cost + heuristic}
+    Q = heapdict.heapdict() # {node: access cost + heuristic}
     d = {}  # access costs
     p = {}  # previous node
     visited = {}  # Number of visits for each visited node
@@ -202,8 +202,7 @@ def astar(graph: Graph, type: str, alternative = False):
     Q[start_node] = 0
 
     while end_node not in S:
-        min_f_node = min(Q, key=Q.get) # wybranie z Q node o najmniejszym szacowanym koszcie dojścia
-        del Q[min_f_node]  # i usunięcie go z Q
+        min_f_node = Q.popitem()[0] # wybranie i usunięcie z Q node o najmniejszym szacowanym koszcie dojścia
         if min_f_node == end_node:
             break
         S.add(min_f_node)  # i dodanie go do S
