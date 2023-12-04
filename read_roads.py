@@ -125,7 +125,6 @@ def make_graph(workspace, layer):
 
     return graph
 
-import heapdict
 
 def dijkstra(graph: Graph, type: str, alternative = False):
     start_node = graph.start_node

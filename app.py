@@ -7,7 +7,7 @@ from read_roads import make_graph, astar, dijkstra, xy_from_path
 #############
 workspace = 'dane\\torun'
 layer = 'L4_1_BDOT10k__OT_SKJZ_L.shp'
-algorithm = 'dijkstra'
+algorithm = 'astar'
 type = 'fastest'
 alternative_path = True
 #############

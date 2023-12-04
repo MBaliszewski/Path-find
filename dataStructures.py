@@ -72,7 +72,7 @@ class Node:
         if type == 'shortest':
             self.h = distance
         elif type == 'fastest':
-            self.h = (distance / 1000) / 120
+            self.h = (distance / 1000) / max_speed
     
     def __str__(self):
         return f'Node {self.id}: x={self.x}, y={self.y}'
