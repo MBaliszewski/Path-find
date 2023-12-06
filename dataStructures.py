@@ -86,6 +86,8 @@ class Edge:
             'L': 40,
             'D': 20,
             'I': 5}
+    
+    multiplier = {True: 2, False: 1} 
 
     def __init__(self, fromn: Node, to: Node, length: float, road_class: str, geometry, flip=False):
         self.fromn = fromn
@@ -101,11 +103,8 @@ class Edge:
         return (self.length / 1000) / max_speed
 
     def get_cost(self, type: str):
-        mulitplier = 1
-        if self.in_prev_path:
-            mulitplier = 2
 
         if type == 'shortest':
-            return self.length * mulitplier
+            return self.length * self.multiplier[self.in_prev_path]
         elif type == 'fastest':
-            return self.count_time(self.max_speed) * mulitplier
+            return self.count_time(self.max_speed) * self.multiplier[self.in_prev_path]
