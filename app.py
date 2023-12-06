@@ -2,7 +2,7 @@ from dash import Dash, html, dcc, Input, Output, callback, State, ctx
 import plotly.graph_objects as go
 import numpy as np
 import json
-from read_roads import make_graph, astar, dijkstra, xy_from_path
+from path_find import make_graph, astar, dijkstra, xy_from_path
 
 #############
 workspace = 'dane\\torun'
