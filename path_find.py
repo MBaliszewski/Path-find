@@ -163,15 +163,15 @@ def dijkstra(graph: Graph, type: str, alternative = False):
     path = retrieve_path(p, start_node, end_node)
 
     print('-----------')
-    print(f'Arrival cost: {min_d_cost * 60 if "fastest" else min_d_cost}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
+    print(f'Arrival cost: {min_d_cost * 60 if type=="fastest" else min_d_cost}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
 
     if alternative:
         graph.set_val_of_in_prev_path(prev_path=path, value=True)
-        alternative_path, _ = astar(graph, type, alternative=False)
+        alternative_path, _ = dijkstra(graph, type, alternative=False)
         graph.set_val_of_in_prev_path(prev_path=path, value=False)
-        return [path, alternative_path[0]], min_d_cost * 60 if 'fastest' else min_d_cost
+        return [path, alternative_path[0]], min_d_cost * 60 if type=='fastest' else min_d_cost
 
-    return [path], min_d_cost * 60 if "fastest" else min_d_cost
+    return [path], min_d_cost * 60 if type=="fastest" else min_d_cost
 
 def astar(graph: Graph, type: str, alternative = False):
     start_node = graph.start_node
@@ -234,16 +234,16 @@ def astar(graph: Graph, type: str, alternative = False):
     #     print(f'{key}, visited: {value}')
 
     print('-----------')
-    print(f'Arrival cost: {d[end_node] * 60 if "fastest" else d[end_node]}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
+    print(f'Arrival cost: {d[end_node] * 60 if type=="fastest" else d[end_node]}\nNumber of visited: {len(visited)}\nNumber of visits: {sum(visited.values())}')
     #
 
     if alternative:
         graph.set_val_of_in_prev_path(prev_path=path, value=True)
         alternative_path, _ = astar(graph, type, alternative=False)
         graph.set_val_of_in_prev_path(prev_path=path, value=False)
-        return [path, alternative_path[0]], d[end_node] * 60 if 'fastest' else d[end_node]
+        return [path, alternative_path[0]], d[end_node] * 60 if type=='fastest' else d[end_node]
 
-    return [path], d[end_node] * 60 if 'fastest' else d[end_node]
+    return [path], d[end_node] * 60 if type=='fastest' else d[end_node]
 
 def retrieve_path(p, s, e):
     path = []
